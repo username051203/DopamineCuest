@@ -62,7 +62,12 @@ public class TaskDetailActivity extends AppCompatActivity {
 
         findViewById(R.id.btn_back).setOnClickListener(v -> finish());
 
-        if (task.verification == Task.VerificationType.TIMER) {
+        if (task.verification == Task.VerificationType.STUDY) {
+            Intent si = new Intent(this, StudyActivity.class);
+            si.putExtra("from_overlay", fromOverlay);
+            startActivity(si);
+            finish();
+        } else if (task.verification == Task.VerificationType.TIMER) {
             setupTimer();
         } else {
             setupPhoto();

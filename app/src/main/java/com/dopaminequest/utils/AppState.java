@@ -2,13 +2,19 @@ package com.dopaminequest.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Set;
 
 public class AppState {
 
     private static final String PREFS = "dq_prefs";
     public static final int GATE_TASKS_REQUIRED = 3;
+    public static final int STUDY_PAGES_REQUIRED = 6;
+    public static final int QUIZ_QUESTIONS = 10;
+    public static final int QUIZ_MAX_ATTEMPTS = 3;
 
     private static SharedPreferences prefs(Context ctx) {
         return ctx.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
@@ -17,6 +23,11 @@ public class AppState {
     // ── Onboarding ────────────────────────────────────────────────────────────
     public static boolean isOnboarded(Context ctx) { return prefs(ctx).getBoolean("onboarded", false); }
     public static void setOnboarded(Context ctx, boolean v) { prefs(ctx).edit().putBoolean("onboarded", v).apply(); }
+
+    // ── Gemini API key ────────────────────────────────────────────────────────
+    public static String getGeminiKey(Context ctx) { return prefs(ctx).getString("gemini_key", ""); }
+    public static void setGeminiKey(Context ctx, String key) { prefs(ctx).edit().putString("gemini_key", key).apply(); }
+    public static boolean hasGeminiKey(Context ctx) { return !getGeminiKey(ctx).isEmpty(); }
 
     // ── Allowlist ─────────────────────────────────────────────────────────────
     public static Set<String> getAllowlist(Context ctx) {
@@ -78,7 +89,7 @@ public class AppState {
     public static void incrementTasksDoneToday(Context ctx) { prefs(ctx).edit().putInt("tasks_done_today", getTasksDoneToday(ctx) + 1).apply(); }
     public static void resetTasksDoneToday(Context ctx) { prefs(ctx).edit().putInt("tasks_done_today", 0).apply(); }
 
-    // ── Completed task IDs (daily) ────────────────────────────────────────────
+    // ── Completed task IDs ────────────────────────────────────────────────────
     public static Set<String> getCompletedIds(Context ctx) {
         return new HashSet<>(prefs(ctx).getStringSet("completed_ids", new HashSet<>()));
     }
@@ -118,4 +129,32 @@ public class AppState {
     // ── Shield ────────────────────────────────────────────────────────────────
     public static boolean isShieldEnabled(Context ctx) { return prefs(ctx).getBoolean("shield_enabled", true); }
     public static void setShieldEnabled(Context ctx, boolean v) { prefs(ctx).edit().putBoolean("shield_enabled", v).apply(); }
+
+    // ── Wrong answer queue (stored as pipe-separated JSON strings) ────────────
+    public static void enqueueWrongQuestion(Context ctx, String questionJson) {
+        String existing = prefs(ctx).getString("wrong_queue", "");
+        String updated  = existing.isEmpty() ? questionJson : existing + "|||" + questionJson;
+        prefs(ctx).edit().putString("wrong_queue", updated).apply();
+    }
+    public static String dequeueWrongQuestion(Context ctx) {
+        String existing = prefs(ctx).getString("wrong_queue", "");
+        if (existing.isEmpty()) return null;
+        int sep = existing.indexOf("|||");
+        if (sep == -1) {
+            prefs(ctx).edit().putString("wrong_queue", "").apply();
+            return existing;
+        }
+        String first = existing.substring(0, sep);
+        String rest  = existing.substring(sep + 3);
+        prefs(ctx).edit().putString("wrong_queue", rest).apply();
+        return first;
+    }
+    public static boolean hasWrongQuestions(Context ctx) {
+        return !prefs(ctx).getString("wrong_queue", "").isEmpty();
+    }
+    public static int wrongQueueSize(Context ctx) {
+        String q = prefs(ctx).getString("wrong_queue", "");
+        if (q.isEmpty()) return 0;
+        return q.split("\\|\\|\\|").length;
+    }
 }

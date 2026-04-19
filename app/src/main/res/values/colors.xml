@@ -9,4 +9,5 @@
     <color name="accent_light">#E8C090</color>
     <color name="white">#FFFFFF</color>
     <color name="verified_green">#2D6A4F</color>
+    <color name="red_wrong">#C02A1A</color>
 </resources>
