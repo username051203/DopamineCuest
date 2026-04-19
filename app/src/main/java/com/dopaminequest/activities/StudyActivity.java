@@ -4,6 +4,9 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
+import android.media.Image;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +30,7 @@ import com.dopaminequest.utils.GeminiService;
 
 import org.json.JSONArray;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -34,15 +38,16 @@ import java.util.concurrent.Executors;
 
 public class StudyActivity extends AppCompatActivity {
 
-    private static final int    PAGES_REQUIRED   = AppState.STUDY_PAGES_REQUIRED;
-    private static final int    PERM_REQUEST     = 201;
+    private static final int PAGES_REQUIRED = AppState.STUDY_PAGES_REQUIRED;
+    private static final int PERM_REQUEST   = 201;
 
-    private PreviewView     previewView;
-    private ImageCapture    imageCapture;
+    private PreviewView  previewView;
+    private ImageCapture imageCapture;
     private ExecutorService cameraExecutor;
-    private Button          btnCapture, btnRetake;
-    private TextView        tvStatus, tvCounter;
-    private View            layoutPreview, layoutConfirm;
+
+    private TextView tvStatus, tvCounter;
+    private Button   btnCapture, btnRetake, btnConfirm;
+    private View     layoutPreview, layoutConfirm, layoutConfirmBtns;
 
     private final List<Bitmap> pages       = new ArrayList<>();
     private       Bitmap       pendingPage = null;
@@ -52,20 +57,21 @@ public class StudyActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_study);
 
-        previewView   = findViewById(R.id.preview_view);
-        tvStatus      = findViewById(R.id.tv_status);
-        tvCounter     = findViewById(R.id.tv_counter);
-        btnCapture    = findViewById(R.id.btn_capture);
-        btnRetake     = findViewById(R.id.btn_retake);
-        layoutPreview = findViewById(R.id.layout_preview);
-        layoutConfirm = findViewById(R.id.layout_confirm);
+        previewView        = findViewById(R.id.preview_view);
+        tvStatus           = findViewById(R.id.tv_status);
+        tvCounter          = findViewById(R.id.tv_counter);
+        btnCapture         = findViewById(R.id.btn_capture);
+        btnRetake          = findViewById(R.id.btn_retake);
+        btnConfirm         = findViewById(R.id.btn_confirm);
+        layoutPreview      = findViewById(R.id.layout_preview);
+        layoutConfirm      = findViewById(R.id.layout_confirm);
+        layoutConfirmBtns  = findViewById(R.id.layout_confirm_buttons);
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
-        Button btnConfirm = findViewById(R.id.btn_confirm);
+        btnCapture.setOnClickListener(v -> capturePage());
         btnConfirm.setOnClickListener(v -> confirmPage());
         btnRetake.setOnClickListener(v -> retakePage());
-        btnCapture.setOnClickListener(v -> capturePage());
 
         updateCounter();
         requestCameraPermission();
@@ -89,7 +95,7 @@ public class StudyActivity extends AppCompatActivity {
                 && grants[0] == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
-            tvStatus.setText("Camera permission required.");
+            tvStatus.setText("Camera permission required to continue.");
             btnCapture.setEnabled(false);
         }
     }
@@ -99,18 +105,14 @@ public class StudyActivity extends AppCompatActivity {
             try {
                 ProcessCameraProvider provider =
                     ProcessCameraProvider.getInstance(this).get();
-
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
-
                 imageCapture = new ImageCapture.Builder()
                     .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                     .build();
-
                 provider.unbindAll();
                 provider.bindToLifecycle(this,
                     CameraSelector.DEFAULT_BACK_CAMERA, preview, imageCapture);
-
                 showScanUI();
             } catch (Exception e) {
                 tvStatus.setText("Camera error: " + e.getMessage());
@@ -127,12 +129,6 @@ public class StudyActivity extends AppCompatActivity {
             new ImageCapture.OnImageCapturedCallback() {
                 @Override
                 public void onCaptureSuccess(@NonNull ImageProxy proxy) {
-                    // Convert to Bitmap
-                    android.graphics.ImageDecoder.Source src =
-                        android.graphics.ImageDecoder.createSource(
-                            getContentResolver(),
-                            android.net.Uri.EMPTY);
-                    // Simple approach — use proxy planes
                     pendingPage = proxyToBitmap(proxy);
                     proxy.close();
                     runOnUiThread(() -> showConfirmUI());
@@ -147,21 +143,23 @@ public class StudyActivity extends AppCompatActivity {
             });
     }
 
-    @SuppressWarnings("UnsafeOptInUsageError")
     private Bitmap proxyToBitmap(ImageProxy proxy) {
-        android.media.Image img = proxy.getImage();
-        if (img == null) return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
-        android.media.Image.Plane[] planes = img.getPlanes();
-        java.nio.ByteBuffer buffer = planes[0].getBuffer();
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        android.graphics.BitmapFactory.Options opts = new android.graphics.BitmapFactory.Options();
-        opts.inSampleSize = 2; // downsample to save memory
-        Bitmap bmp = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
-        // Rotate if needed
-        android.graphics.Matrix matrix = new android.graphics.Matrix();
-        matrix.postRotate(proxy.getImageInfo().getRotationDegrees());
-        return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+        try {
+            Image img = proxy.getImage();
+            if (img == null) return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+            ByteBuffer buffer = img.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+            BitmapFactory.Options opts = new BitmapFactory.Options();
+            opts.inSampleSize = 2;
+            Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opts);
+            if (bmp == null) return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+            Matrix matrix = new Matrix();
+            matrix.postRotate(proxy.getImageInfo().getRotationDegrees());
+            return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
+        } catch (Exception e) {
+            return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+        }
     }
 
     private void confirmPage() {
@@ -185,13 +183,18 @@ public class StudyActivity extends AppCompatActivity {
     private void showScanUI() {
         layoutPreview.setVisibility(View.VISIBLE);
         layoutConfirm.setVisibility(View.GONE);
+        layoutConfirmBtns.setVisibility(View.GONE);
+        btnCapture.setVisibility(View.VISIBLE);
         btnCapture.setEnabled(true);
-        tvStatus.setText("Position page " + (pages.size() + 1) + " clearly and capture.");
+        tvStatus.setText("Position page " + (pages.size() + 1)
+            + " of " + PAGES_REQUIRED + " clearly, then capture.");
     }
 
     private void showConfirmUI() {
         layoutPreview.setVisibility(View.GONE);
         layoutConfirm.setVisibility(View.VISIBLE);
+        layoutConfirmBtns.setVisibility(View.VISIBLE);
+        btnCapture.setVisibility(View.GONE);
         tvStatus.setText("Page " + (pages.size() + 1) + " captured. Keep it?");
     }
 
@@ -202,6 +205,8 @@ public class StudyActivity extends AppCompatActivity {
     private void startAnalysis() {
         layoutPreview.setVisibility(View.GONE);
         layoutConfirm.setVisibility(View.GONE);
+        layoutConfirmBtns.setVisibility(View.GONE);
+        btnCapture.setVisibility(View.GONE);
         tvStatus.setText("Analyzing your study material…\nThis may take 20–30 seconds.");
         tvCounter.setText("Sending to Gemini");
 
@@ -220,8 +225,10 @@ public class StudyActivity extends AppCompatActivity {
             @Override
             public void onError(String error) {
                 runOnUiThread(() -> {
-                    tvStatus.setText("Analysis failed: " + error + "\n\nTap to retry.");
+                    tvStatus.setText("Analysis failed: " + error
+                        + "\n\nTap to retry.");
                     tvCounter.setText("");
+                    btnCapture.setVisibility(View.GONE);
                     tvStatus.setOnClickListener(v -> startAnalysis());
                 });
             }

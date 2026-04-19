@@ -13,47 +13,61 @@
             android:textSize="28sp" android:textStyle="bold" android:letterSpacing="-0.02"/>
         <TextView android:id="@+id/tv_status" android:layout_width="match_parent"
             android:layout_height="wrap_content" android:textColor="@color/ink2"
-            android:textSize="13sp" android:lineSpacingMultiplier="1.5" android:layout_marginTop="8dp"/>
+            android:textSize="13sp" android:lineSpacingMultiplier="1.5"
+            android:layout_marginTop="8dp"/>
     </LinearLayout>
 
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule"/>
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="@color/rule"/>
 
-    <FrameLayout android:id="@+id/layout_preview" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1">
+    <FrameLayout android:id="@+id/layout_preview"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1">
         <androidx.camera.view.PreviewView android:id="@+id/preview_view"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:background="@color/ink"/>
     </FrameLayout>
 
-    <LinearLayout android:id="@+id/layout_confirm" android:layout_width="match_parent"
-        android:layout_height="0dp" android:layout_weight="1" android:gravity="center"
-        android:orientation="vertical" android:padding="32dp" android:visibility="gone">
+    <LinearLayout android:id="@+id/layout_confirm"
+        android:layout_width="match_parent" android:layout_height="0dp"
+        android:layout_weight="1" android:gravity="center"
+        android:orientation="vertical" android:padding="32dp"
+        android:visibility="gone">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Page captured" android:textColor="@color/ink" android:textSize="22sp"
-            android:textStyle="bold" android:layout_marginBottom="8dp"/>
+            android:text="Page captured" android:textColor="@color/ink"
+            android:textSize="22sp" android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Is it clear and readable?" android:textColor="@color/ink2"
             android:textSize="14sp" android:layout_marginBottom="32dp"/>
     </LinearLayout>
 
-    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule"/>
+    <View android:layout_width="match_parent" android:layout_height="1dp"
+        android:background="@color/rule"/>
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:padding="24dp" android:paddingBottom="32dp" android:orientation="vertical" android:gap="12dp">
-        <Button android:id="@+id/btn_capture" android:layout_width="match_parent"
-            android:layout_height="56dp" android:backgroundTint="@color/ink"
-            android:textColor="@color/paper" android:textSize="15sp"
-            android:textAllCaps="false" android:text="Capture Page"/>
+        android:padding="24dp" android:paddingBottom="32dp" android:orientation="vertical">
+
+        <Button android:id="@+id/btn_capture"
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:backgroundTint="@color/ink" android:textColor="@color/paper"
+            android:textSize="15sp" android:textAllCaps="false"
+            android:text="Capture Page"/>
+
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:gap="12dp" android:visibility="gone">
-            <Button android:id="@+id/btn_retake" android:layout_width="0dp"
-                android:layout_height="48dp" android:layout_weight="1"
+            android:orientation="horizontal" android:layout_marginTop="12dp"
+            android:visibility="gone" android:id="@+id/layout_confirm_buttons">
+            <Button android:id="@+id/btn_retake"
+                android:layout_width="0dp" android:layout_height="48dp"
+                android:layout_weight="1" android:layout_marginEnd="12dp"
                 android:backgroundTint="@color/rule" android:textColor="@color/ink2"
                 android:textAllCaps="false" android:text="Retake"/>
-            <Button android:id="@+id/btn_confirm" android:layout_width="0dp"
-                android:layout_height="48dp" android:layout_weight="2"
+            <Button android:id="@+id/btn_confirm"
+                android:layout_width="0dp" android:layout_height="48dp"
+                android:layout_weight="2"
                 android:backgroundTint="@color/accent" android:textColor="@color/paper"
                 android:textAllCaps="false" android:text="Use this page ✓"/>
         </LinearLayout>
+
     </LinearLayout>
 </LinearLayout>
