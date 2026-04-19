@@ -1,0 +1,4 @@
+-keep class com.dopaminequest.** { *; }
+-keep class com.google.mlkit.** { *; }
+-keepattributes *Annotation*
+-keepattributes SourceFile,LineNumberTable

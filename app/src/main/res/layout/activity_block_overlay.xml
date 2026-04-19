@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper"
+    android:orientation="vertical">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:paddingTop="40dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SHIELD ACTIVE"
+            android:textColor="@color/accent"
+            android:textSize="10sp"
+            android:letterSpacing="0.15"
+            android:layout_marginBottom="6dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Not yet."
+                android:textColor="@color/ink"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:letterSpacing="-0.02" />
+
+            <TextView
+                android:id="@+id/tv_blocked_pkg"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/ink3"
+                android:textSize="10sp"
+                android:letterSpacing="0.1" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Complete a task to earn access time."
+            android:textColor="@color/ink2"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.5"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+    <!-- Access active panel (shown when window is open) -->
+    <LinearLayout
+        android:id="@+id/layout_access_active"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ACCESS WINDOW"
+            android:textColor="@color/ink3"
+            android:textSize="10sp"
+            android:letterSpacing="0.12"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tv_access_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="@color/accent"
+            android:textSize="56sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"
+            android:letterSpacing="-0.03"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Remaining access time. Shield restores automatically."
+            android:textColor="@color/ink3"
+            android:textSize="12sp"
+            android:lineSpacingMultiplier="1.5"
+            android:layout_marginBottom="20dp" />
+
+        <Button
+            android:id="@+id/btn_use_apps"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="@color/ink"
+            android:textColor="@color/paper"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            android:text="Use your apps →" />
+
+    </LinearLayout>
+
+    <!-- Task list panel -->
+    <LinearLayout
+        android:id="@+id/layout_task_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_tasks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

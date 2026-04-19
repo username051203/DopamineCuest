@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.DopamineQuest" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/accent</item>
+        <item name="colorPrimaryVariant">@color/ink</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSurface">@color/paper</item>
+        <item name="android:colorBackground">@color/paper</item>
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:statusBarColor">@color/paper</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:navigationBarColor">@color/paper</item>
+    </style>
+
+    <style name="Theme.DopamineQuest.Splash" parent="Theme.DopamineQuest">
+        <item name="android:windowBackground">@color/paper</item>
+    </style>
+
+    <!-- Overlay theme — full screen, no status bar -->
+    <style name="Theme.DopamineQuest.Overlay" parent="Theme.DopamineQuest">
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowBackground">@color/paper</item>
+    </style>
+
+    <!-- Typography -->
+    <style name="TextAppearance.DQ.Masthead" parent="TextAppearance.MaterialComponents.Headline4">
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.03</item>
+        <item name="android:lineSpacingMultiplier">1.05</item>
+    </style>
+
+    <style name="TextAppearance.DQ.Label" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/ink3</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+
+    <style name="TextAppearance.DQ.Number" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textSize">28sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TextAppearance.DQ.Body" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/ink2</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineSpacingMultiplier">1.5</item>
+    </style>
+
+    <style name="TextAppearance.DQ.TaskTitle" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Buttons -->
+    <style name="Widget.DQ.Button" parent="Widget.MaterialComponents.Button">
+        <item name="android:background">@color/ink</item>
+        <item name="android:textColor">@color/paper</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="cornerRadius">0dp</item>
+        <item name="rippleColor">@color/ink2</item>
+    </style>
+
+    <style name="Widget.DQ.Button.Accent" parent="Widget.DQ.Button">
+        <item name="android:background">@color/accent</item>
+    </style>
+
+</resources>

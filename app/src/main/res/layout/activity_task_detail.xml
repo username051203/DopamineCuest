@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper"
+    android:orientation="vertical">
+
+    <!-- Back nav -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="24dp"
+        android:paddingTop="40dp"
+        android:gravity="center_vertical">
+
+        <Button
+            android:id="@+id/btn_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:textColor="@color/ink3"
+            android:textSize="11sp"
+            android:letterSpacing="0.1"
+            android:textAllCaps="false"
+            android:text="← BACK"
+            android:padding="0dp" />
+
+        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tv_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/accent"
+            android:textSize="10sp"
+            android:letterSpacing="0.15" />
+
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+    <!-- Content -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <TextView
+            android:id="@+id/tv_emoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="64sp"
+            android:layout_marginBottom="20dp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ink"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.02"
+            android:lineSpacingMultiplier="1.15"
+            android:gravity="center"
+            android:layout_marginBottom="10dp" />
+
+        <TextView
+            android:id="@+id/tv_xp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ink3"
+            android:textSize="12sp"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="48dp" />
+
+        <!-- Big timer display -->
+        <TextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/ink"
+            android:textSize="72sp"
+            android:textStyle="bold"
+            android:letterSpacing="-0.04"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:visibility="gone" />
+
+        <!-- Progress line — scale driven from Java -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="48dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/rule"
+                android:layout_gravity="center_vertical" />
+
+            <View
+                android:id="@+id/progress_line"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/accent"
+                android:layout_gravity="center_vertical" />
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+    <!-- Action button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="24dp"
+        android:paddingBottom="32dp">
+
+        <Button
+            android:id="@+id/btn_action"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:backgroundTint="@color/ink"
+            android:textColor="@color/paper"
+            android:textSize="15sp"
+            android:letterSpacing="0.03"
+            android:textAllCaps="false" />
+
+    </LinearLayout>
+
+</LinearLayout>

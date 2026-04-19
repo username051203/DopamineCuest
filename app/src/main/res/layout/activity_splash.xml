@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="40dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="DOPAMINE\nQUEST"
+        android:textColor="@color/ink"
+        android:textSize="38sp"
+        android:textStyle="bold"
+        android:letterSpacing="-0.03"
+        android:lineSpacingMultiplier="0.95"
+        android:gravity="center" />
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="2dp"
+        android:layout_marginTop="24dp"
+        android:background="@color/accent" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="STOP SCROLLING. FIND FOCUS."
+        android:textColor="@color/ink3"
+        android:textSize="10sp"
+        android:letterSpacing="0.15" />
+
+</LinearLayout>

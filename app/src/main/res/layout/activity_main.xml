@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper"
+    android:orientation="vertical">
+
+    <!-- Fragment container -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <!-- Rule -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/rule" />
+
+    <!-- Bottom nav — text only, no icons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:orientation="horizontal"
+        android:background="@color/paper">
+
+        <!-- Home -->
+        <LinearLayout
+            android:id="@+id/nav_home"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:tag="nav_dot_0"
+                android:layout_width="20dp"
+                android:layout_height="2dp"
+                android:background="@color/accent"
+                android:visibility="invisible" />
+
+            <TextView
+                android:tag="nav_label_0"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="HOME"
+                android:textColor="@color/ink3"
+                android:textSize="10sp"
+                android:letterSpacing="0.12"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/rule" />
+
+        <!-- Tasks -->
+        <LinearLayout
+            android:id="@+id/nav_tasks"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:tag="nav_dot_1"
+                android:layout_width="20dp"
+                android:layout_height="2dp"
+                android:background="@color/accent"
+                android:visibility="invisible" />
+
+            <TextView
+                android:tag="nav_label_1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TASKS"
+                android:textColor="@color/ink3"
+                android:textSize="10sp"
+                android:letterSpacing="0.12"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/rule" />
+
+        <!-- Quests -->
+        <LinearLayout
+            android:id="@+id/nav_quests"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true">
+
+            <View
+                android:tag="nav_dot_2"
+                android:layout_width="20dp"
+                android:layout_height="2dp"
+                android:background="@color/accent"
+                android:visibility="invisible" />
+
+            <TextView
+                android:tag="nav_label_2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="QUESTS"
+                android:textColor="@color/ink3"
+                android:textSize="10sp"
+                android:letterSpacing="0.12"
+                android:layout_marginTop="6dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

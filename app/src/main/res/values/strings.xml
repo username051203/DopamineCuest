@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">DopamineQuest</string>
+    <string name="accessibility_service_label">DopamineQuest Shield</string>
+    <string name="accessibility_service_description">Detects when a blocked app is opened and shows your task list instead. Required for the Shield to work.</string>
+</resources>

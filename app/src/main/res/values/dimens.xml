@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="margin_screen">24dp</dimen>
+    <dimen name="margin_section">20dp</dimen>
+    <dimen name="rule_height">1dp</dimen>
+    <dimen name="nav_height">64dp</dimen>
+</resources>

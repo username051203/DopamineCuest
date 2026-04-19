@@ -1,0 +1,92 @@
+name: Build & Sign APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Java ──────────────────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      # ── 3. Gradle — this action installs the wrapper jar automatically ───────
+      #    gradle/actions/setup-gradle handles the wrapper jar entirely.
+      #    No jar needs to be committed or downloaded manually.
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      # ── 4. Make gradlew executable ───────────────────────────────────────────
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # ── 5. Debug build (pull requests — no secrets needed) ───────────────────
+      - name: Build debug APK
+        if: github.event_name == 'pull_request'
+        run: gradle assembleDebug --stacktrace
+
+      - name: Upload debug APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DopamineQuest-debug
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+
+      # ── 6. Release build (push to main) ──────────────────────────────────────
+      - name: Decode keystore
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > keystore.jks
+          echo "Keystore: $(wc -c < keystore.jks) bytes"
+
+      - name: Build release APK
+        if: github.event_name != 'pull_request'
+        run: gradle assembleRelease --stacktrace
+        env:
+          KEYSTORE_PATH:     ${{ github.workspace }}/keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload release APK
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: DopamineQuest-release
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+
+      # ── 7. GitHub Release ─────────────────────────────────────────────────────
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: "DopamineQuest v1.0.${{ github.run_number }}"
+          body: |
+            Automated build — commit ${{ github.sha }}
+            Download the APK below and sideload on Android.
+          files: app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── 8. Cleanup ────────────────────────────────────────────────────────────
+      - name: Remove keystore
+        if: always()
+        run: rm -f keystore.jks

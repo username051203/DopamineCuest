@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/paper">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:paddingTop="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CHALLENGES"
+                android:textColor="@color/ink3"
+                android:textSize="10sp"
+                android:letterSpacing="0.15"
+                android:layout_marginBottom="6dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quests"
+                android:textColor="@color/ink"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                android:letterSpacing="-0.02" />
+
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+        <!-- Quest I -->
+        <include layout="@layout/item_quest"
+            android:id="@+id/quest_1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+        <!-- Quest II -->
+        <include layout="@layout/item_quest"
+            android:id="@+id/quest_2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+        <!-- Quest III -->
+        <include layout="@layout/item_quest"
+            android:id="@+id/quest_3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/rule" />
+
+    </LinearLayout>
+
+</ScrollView>
