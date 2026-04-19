@@ -1,6 +1,5 @@
 package com.dopaminequest.fragments;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,8 +61,6 @@ public class HomeFragment extends Fragment {
 
         // Coach CTA
         view.findViewById(R.id.layout_coach_cta).setOnClickListener(v -> {
-            TextView tvCoach = requireActivity().findViewById(R.id.nav_label_2);
-            // Switch to tasks tab (coach is placeholder for now)
         });
     }
 }

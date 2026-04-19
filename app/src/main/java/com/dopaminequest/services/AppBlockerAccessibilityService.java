@@ -2,9 +2,9 @@ package com.dopaminequest.services;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.app.KeyguardManager;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
 import android.content.Intent;
-import android.os.PowerManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
@@ -67,11 +67,6 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
         startActivity(i);
     }
 
-    /**
-     * Intercept volume key combinations.
-     * Vol UP + Vol DOWN within 400ms → turn screen off.
-     * This discourages using hardware combos to bypass the overlay.
-     */
     @Override
     protected boolean onKeyEvent(KeyEvent event) {
         if (event.getAction() != KeyEvent.ACTION_DOWN) return false;
@@ -87,14 +82,13 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
             lastVolDownTime = now;
         }
 
-        // Both volume keys within combo window → screen off
         if (Math.abs(lastVolUpTime - lastVolDownTime) < COMBO_WINDOW_MS
                 && lastVolUpTime > 0 && lastVolDownTime > 0) {
             lastVolUpTime = 0;
             lastVolDownTime = 0;
-            Log.d(TAG, "Volume combo detected — turning screen off");
+            Log.d(TAG, "Volume combo detected — locking screen");
             turnScreenOff();
-            return true; // consume the event
+            return true;
         }
 
         return false;
@@ -102,16 +96,15 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
 
     private void turnScreenOff() {
         try {
-            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            if (pm != null) {
-                // goToSleep requires DEVICE_POWER — granted via Device Admin
-                pm.goToSleep(System.currentTimeMillis());
+            DevicePolicyManager dpm =
+                (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
+            ComponentName admin =
+                com.dopaminequest.receivers.DQDeviceAdminReceiver.getComponentName(this);
+            if (dpm != null && dpm.isAdminActive(admin)) {
+                dpm.lockNow();
             }
         } catch (Exception e) {
-            Log.e(TAG, "goToSleep failed: " + e.getMessage());
-            // Fallback: lock via KeyguardManager
-            KeyguardManager km = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
-            // No public lock API without admin — Device Admin handles this
+            Log.e(TAG, "lockNow failed: " + e.getMessage());
         }
     }
 
@@ -125,7 +118,6 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
     public void onDestroy() {
         super.onDestroy();
         sInstance = null;
-        // Restart self via PersistenceService
         Intent i = new Intent(this, PersistenceService.class);
         startService(i);
     }
