@@ -87,7 +87,6 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Give me a reason…"
-            android:hintTextColor="@color/ink3"
             android:textColor="@color/ink"
             android:textSize="14sp"
             android:background="@null"
