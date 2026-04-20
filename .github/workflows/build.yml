@@ -7,35 +7,31 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout ──────────────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Java ──────────────────────────────────────────────────────────────
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # ── 3. Gradle — this action installs the wrapper jar automatically ───────
-      #    gradle/actions/setup-gradle handles the wrapper jar entirely.
-      #    No jar needs to be committed or downloaded manually.
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.4'
 
-      # ── 4. Make gradlew executable ───────────────────────────────────────────
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # ── 5. Debug build (pull requests — no secrets needed) ───────────────────
       - name: Build debug APK
         if: github.event_name == 'pull_request'
         run: gradle assembleDebug --stacktrace
@@ -48,7 +44,6 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           retention-days: 7
 
-      # ── 6. Release build (push to main) ──────────────────────────────────────
       - name: Decode keystore
         if: github.event_name != 'pull_request'
         run: |
@@ -64,17 +59,16 @@ jobs:
           KEY_ALIAS:         ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD:      ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload release APK
+      - name: Upload release APK artifact
         if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
-          name: DopamineQuest-release
+          name: DopamineQuest-release-${{ github.run_number }}
           path: app/build/outputs/apk/release/*.apk
           retention-days: 30
 
-      # ── 7. GitHub Release ─────────────────────────────────────────────────────
       - name: Create GitHub Release
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.${{ github.run_number }}
@@ -83,10 +77,7 @@ jobs:
             Automated build — commit ${{ github.sha }}
             Download the APK below and sideload on Android.
           files: app/build/outputs/apk/release/*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── 8. Cleanup ────────────────────────────────────────────────────────────
       - name: Remove keystore
         if: always()
         run: rm -f keystore.jks
