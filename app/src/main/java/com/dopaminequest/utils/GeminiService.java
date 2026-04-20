@@ -20,7 +20,7 @@ public class GeminiService {
     private static final String TAG   = "DQ_Gemini";
     private static final String MODEL = "gemini-1.5-flash-latest";
     private static final String BASE  =
-        "https://generativelanguage.googleapis.com/v1beta/models/"\;
+        "https://generativelanguage.googleapis.com/v1beta/models/";
 
     // Max dimension for each page image before encoding
     // Keeps tokens low and avoids quota issues on free tier
