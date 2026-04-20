@@ -18,7 +18,7 @@ import java.util.List;
 public class GeminiService {
 
     private static final String TAG   = "DQ_Gemini";
-    private static final String MODEL = "gemini-1.5-flash";
+    private static final String MODEL = "gemini-2.0-flash";
     private static final String BASE  =
         "https://generativelanguage.googleapis.com/v1beta/models/";
 

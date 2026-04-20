@@ -48,7 +48,7 @@ public class BlockOverlayActivity extends AppCompatActivity {
         rvTasks            = findViewById(R.id.rv_tasks);
         rvAllowedApps      = findViewById(R.id.rv_allowed_apps);
 
-        String blockedPkg = getIntent().getStringExtra("blocked_pkg");
+        final String blockedPkg = getIntent().getStringExtra("blocked_pkg");
         if (blockedPkg != null) {
             tvBlockedPkg.setText(getAppLabel(blockedPkg));
         }
