@@ -47,11 +47,11 @@ public class OverlayTaskAdapter extends RecyclerView.Adapter<OverlayTaskAdapter.
         h.tvMeta.setText(t.tag + "  ·  " + t.durationMins + " min  ·  +" + t.xp + " XP  ·  +" + t.accessMinutes + " min access");
         h.tvType.setText(t.verification == Task.VerificationType.PHOTO ? "PHOTO" : "TIMER");
 
-        float alpha = done ? 0.4f : 1f;
-        h.itemView.setAlpha(alpha);
+        
+        
 
         h.itemView.setOnClickListener(v -> {
-            if (!done) listener.onTap(t);
+            listener.onTap(t);
         });
     }
 

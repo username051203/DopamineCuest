@@ -28,7 +28,8 @@ public class AppSelectAdapter extends RecyclerView.Adapter<AppSelectAdapter.VH> 
         public final ApplicationInfo info;
         public       boolean         selected;
 
-        public AppItem(String packageName, String label, ApplicationInfo info, boolean selected) {
+        public AppItem(String packageName, String label,
+                       ApplicationInfo info, boolean selected) {
             this.packageName = packageName;
             this.label       = label;
             this.info        = info;
@@ -38,8 +39,8 @@ public class AppSelectAdapter extends RecyclerView.Adapter<AppSelectAdapter.VH> 
 
     public interface OnSelectionChanged { void onChanged(int selectedCount); }
 
-    private final List<AppItem>        items;
-    private final OnSelectionChanged   listener;
+    private final List<AppItem>      items;
+    private final OnSelectionChanged listener;
 
     public AppSelectAdapter(List<AppItem> items, OnSelectionChanged listener) {
         this.items    = items;
@@ -57,11 +58,14 @@ public class AppSelectAdapter extends RecyclerView.Adapter<AppSelectAdapter.VH> 
     @Override
     public void onBindViewHolder(@NonNull VH holder, int position) {
         AppItem item = items.get(position);
+
         holder.tvLabel.setText(item.label);
         holder.tvPkg.setText(item.packageName);
+
+        // Unbind listener before setting checked state to avoid feedback loop
+        holder.checkbox.setOnCheckedChangeListener(null);
         holder.checkbox.setChecked(item.selected);
 
-        // Load icon
         try {
             PackageManager pm = holder.itemView.getContext().getPackageManager();
             Drawable icon = pm.getApplicationIcon(item.info);
@@ -70,11 +74,16 @@ public class AppSelectAdapter extends RecyclerView.Adapter<AppSelectAdapter.VH> 
             holder.ivIcon.setImageResource(android.R.drawable.sym_def_app_icon);
         }
 
+        // Single click handler on whole row
         holder.itemView.setOnClickListener(v -> {
             item.selected = !item.selected;
+            // Update checkbox without triggering its own listener
+            holder.checkbox.setOnCheckedChangeListener(null);
             holder.checkbox.setChecked(item.selected);
             notifySelectionChanged();
         });
+
+        // Rebind checkbox listener after setting state
         holder.checkbox.setOnCheckedChangeListener((cb, checked) -> {
             if (item.selected != checked) {
                 item.selected = checked;
@@ -97,6 +106,10 @@ public class AppSelectAdapter extends RecyclerView.Adapter<AppSelectAdapter.VH> 
 
     @Override
     public int getItemCount() { return items.size(); }
+
+    // Stable IDs prevent RecyclerView from rebinding wrong items
+    @Override
+    public long getItemId(int position) { return items.get(position).packageName.hashCode(); }
 
     static class VH extends RecyclerView.ViewHolder {
         ImageView ivIcon;

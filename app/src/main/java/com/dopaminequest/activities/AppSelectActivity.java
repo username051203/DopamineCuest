@@ -74,7 +74,8 @@ public class AppSelectActivity extends AppCompatActivity {
                 tvSubtitle.setText("Select apps you want to keep using.\nEverything else will be blocked.");
                 adapter = new AppSelectAdapter(items, count ->
                     btnDone.setText("Allow " + count + " app" + (count == 1 ? "" : "s") + " →"));
-                rv.setAdapter(adapter);
+                adapter.setHasStableIds(true);
+        rv.setAdapter(adapter);
                 btnDone.setEnabled(true);
                 btnDone.setText("Allow 0 apps →");
             });
