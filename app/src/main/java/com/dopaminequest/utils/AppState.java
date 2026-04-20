@@ -158,3 +158,29 @@ public class AppState {
         return q.split("\\|\\|\\|").length;
     }
 }
+
+    // ── Daily reset ───────────────────────────────────────────────────────────
+    public static long getLastResetDay(Context ctx) {
+        return prefs(ctx).getLong("last_reset_day", 0);
+    }
+    public static void performDailyResetIfNeeded(Context ctx) {
+        java.util.Calendar now = java.util.Calendar.getInstance();
+        int today = now.get(java.util.Calendar.DAY_OF_YEAR) * 10000
+                  + now.get(java.util.Calendar.YEAR);
+        long last = getLastResetDay(ctx);
+        if (last == today) return; // already reset today
+        // Reset
+        resetCompletedIds(ctx);
+        resetTasksDoneToday(ctx);
+        // Increment streak if tasks were done yesterday, else reset
+        int donePrev = prefs(ctx).getInt("tasks_done_today_prev", 0);
+        if (donePrev > 0) {
+            setStreak(ctx, getStreak(ctx) + 1);
+        } else if (last != 0) {
+            setStreak(ctx, 0); // missed a day
+        }
+        prefs(ctx).edit()
+            .putLong("last_reset_day", today)
+            .putInt("tasks_done_today_prev", 0)
+            .apply();
+    }

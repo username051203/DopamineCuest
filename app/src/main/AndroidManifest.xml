@@ -97,6 +97,7 @@
         </receiver>
 
         <receiver android:name=".receivers.WatchdogAlarmReceiver" android:exported="false" />
+        <receiver android:name=".receivers.DailyResetReceiver" android:exported="false" />
 
         <receiver android:name=".receivers.AccessWindowReceiver" android:exported="false">
             <intent-filter>

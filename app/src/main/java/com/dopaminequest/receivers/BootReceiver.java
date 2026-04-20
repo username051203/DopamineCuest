@@ -22,7 +22,8 @@ public class BootReceiver extends BroadcastReceiver {
         boolean safeMode = intent.getBooleanExtra("android.intent.extra.SAFE_BOOT", false);
         if (safeMode) {
             Log.w(TAG, "Safe mode detected — penalizing streak");
-            AppState.setStreak(ctx, 0); // reset streak as penalty
+            AppState.setStreak(ctx, 0);
+        AppState.performDailyResetIfNeeded(ctx);
             // Access window is meaningless in safe mode — revoke it
             AppState.revokeAccessWindow(ctx);
         }

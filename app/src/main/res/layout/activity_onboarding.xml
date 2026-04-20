@@ -5,12 +5,11 @@
     android:background="@color/paper"
     android:orientation="vertical">
 
-    <!-- Top rule bar -->
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:background="@color/rule"
-        android:layout_marginTop="48dp" />
+        android:layout_marginTop="48dp"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +18,6 @@
         android:orientation="vertical"
         android:padding="24dp">
 
-        <!-- Step indicator -->
         <TextView
             android:id="@+id/tv_step"
             android:layout_width="wrap_content"
@@ -28,9 +26,8 @@
             android:textSize="10sp"
             android:letterSpacing="0.12"
             android:textAllCaps="true"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="32dp"/>
 
-        <!-- Title -->
         <TextView
             android:id="@+id/tv_title"
             android:layout_width="wrap_content"
@@ -40,27 +37,61 @@
             android:textStyle="bold"
             android:letterSpacing="-0.02"
             android:lineSpacingMultiplier="1.05"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"/>
 
-        <!-- Rule -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/rule"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="24dp"/>
 
-        <!-- Body -->
         <TextView
             android:id="@+id/tv_body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/ink2"
             android:textSize="15sp"
-            android:lineSpacingMultiplier="1.6" />
+            android:lineSpacingMultiplier="1.6"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- API key input — only visible on step 4 -->
+        <LinearLayout
+            android:id="@+id/layout_api_key"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/et_api_key"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:hint="Paste Gemini API key here"
+                android:textColor="@color/ink"
+                android:textColorHint="@color/ink3"
+                android:background="@null"
+                android:textSize="13sp"
+                android:inputType="textPassword"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/rule"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="aistudio.google.com → Get API key → free tier"
+                android:textColor="@color/ink3"
+                android:textSize="11sp"
+                android:layout_marginTop="8dp"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 
-    <!-- Progress -->
     <ProgressBar
         android:id="@+id/progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
@@ -68,9 +99,8 @@
         android:layout_height="2dp"
         android:progressTint="@color/accent"
         android:progressBackgroundTint="@color/rule"
-        android:max="4" />
+        android:max="5"/>
 
-    <!-- Bottom buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -86,7 +116,7 @@
             android:textColor="@color/paper"
             android:textSize="14sp"
             android:letterSpacing="0.05"
-            android:textAllCaps="false" />
+            android:textAllCaps="false"/>
 
         <Button
             android:id="@+id/btn_skip"
@@ -97,7 +127,7 @@
             android:textSize="13sp"
             android:textAllCaps="false"
             android:layout_marginTop="8dp"
-            android:text="Skip for now" />
+            android:text="Skip for now"/>
 
     </LinearLayout>
 
