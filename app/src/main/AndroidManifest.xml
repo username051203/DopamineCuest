@@ -58,6 +58,10 @@
             android:launchMode="singleInstance" android:excludeFromRecents="true"
             android:showOnLockScreen="true" android:turnScreenOn="true" />
 
+        <activity android:name=".activities.CoachChatActivity" android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
         <activity android:name=".activities.UninstallGateActivity" android:exported="false"
             android:screenOrientation="portrait"
             android:theme="@style/Theme.DopamineQuest.Overlay"
