@@ -55,7 +55,7 @@ public class BlockOverlayActivity extends AppCompatActivity {
 
         // Coach chat button
         findViewById(R.id.btn_coach_chat).setOnClickListener(v -> {
-            Intent ci = new Intent(this, CoachChatActivity.class);
+            android.widget.Toast.makeText(this,"opening coach",android.widget.Toast.LENGTH_SHORT).show(); Intent ci = new Intent(this, CoachChatActivity.class);
             ci.putExtra("blocked_pkg", blockedPkg);
             startActivity(ci);
         });
