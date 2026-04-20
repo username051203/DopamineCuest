@@ -3,18 +3,17 @@ package com.dopaminequest.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import java.util.Calendar;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.Set;
 
 public class AppState {
 
     private static final String PREFS = "dq_prefs";
-    public static final int GATE_TASKS_REQUIRED = 3;
+    public static final int GATE_TASKS_REQUIRED  = 3;
     public static final int STUDY_PAGES_REQUIRED = 6;
-    public static final int QUIZ_QUESTIONS = 10;
-    public static final int QUIZ_MAX_ATTEMPTS = 3;
+    public static final int QUIZ_QUESTIONS       = 10;
+    public static final int QUIZ_MAX_ATTEMPTS    = 3;
 
     private static SharedPreferences prefs(Context ctx) {
         return ctx.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
@@ -86,7 +85,13 @@ public class AppState {
 
     // ── Tasks today ───────────────────────────────────────────────────────────
     public static int getTasksDoneToday(Context ctx) { return prefs(ctx).getInt("tasks_done_today", 0); }
-    public static void incrementTasksDoneToday(Context ctx) { prefs(ctx).edit().putInt("tasks_done_today", getTasksDoneToday(ctx) + 1).apply(); }
+    public static void incrementTasksDoneToday(Context ctx) {
+        int cur = getTasksDoneToday(ctx) + 1;
+        prefs(ctx).edit()
+            .putInt("tasks_done_today", cur)
+            .putInt("tasks_done_today_prev", cur)
+            .apply();
+    }
     public static void resetTasksDoneToday(Context ctx) { prefs(ctx).edit().putInt("tasks_done_today", 0).apply(); }
 
     // ── Completed task IDs ────────────────────────────────────────────────────
@@ -130,7 +135,7 @@ public class AppState {
     public static boolean isShieldEnabled(Context ctx) { return prefs(ctx).getBoolean("shield_enabled", true); }
     public static void setShieldEnabled(Context ctx, boolean v) { prefs(ctx).edit().putBoolean("shield_enabled", v).apply(); }
 
-    // ── Wrong answer queue (stored as pipe-separated JSON strings) ────────────
+    // ── Wrong answer queue ────────────────────────────────────────────────────
     public static void enqueueWrongQuestion(Context ctx, String questionJson) {
         String existing = prefs(ctx).getString("wrong_queue", "");
         String updated  = existing.isEmpty() ? questionJson : existing + "|||" + questionJson;
@@ -145,8 +150,7 @@ public class AppState {
             return existing;
         }
         String first = existing.substring(0, sep);
-        String rest  = existing.substring(sep + 3);
-        prefs(ctx).edit().putString("wrong_queue", rest).apply();
+        prefs(ctx).edit().putString("wrong_queue", existing.substring(sep + 3)).apply();
         return first;
     }
     public static boolean hasWrongQuestions(Context ctx) {
@@ -157,30 +161,66 @@ public class AppState {
         if (q.isEmpty()) return 0;
         return q.split("\\|\\|\\|").length;
     }
-}
+
+    // ── Temp single-app access (Gemini-granted) ───────────────────────────────
+    public static void grantTempAppAccess(Context ctx, String pkg, int minutes) {
+        long until = System.currentTimeMillis() + (long) minutes * 60000;
+        prefs(ctx).edit()
+            .putString("temp_app_pkg", pkg)
+            .putLong("temp_app_until", until)
+            .apply();
+    }
+    public static boolean hasTempAppAccess(Context ctx, String pkg) {
+        if (pkg == null) return false;
+        String saved = prefs(ctx).getString("temp_app_pkg", "");
+        long until   = prefs(ctx).getLong("temp_app_until", 0);
+        return saved.equals(pkg) && System.currentTimeMillis() < until;
+    }
+    public static void revokeTempAppAccess(Context ctx) {
+        prefs(ctx).edit().putString("temp_app_pkg", "").putLong("temp_app_until", 0).apply();
+    }
+    public static long getTempAppUntil(Context ctx) { return prefs(ctx).getLong("temp_app_until", 0); }
+    public static String getTempAppPkg(Context ctx) { return prefs(ctx).getString("temp_app_pkg", ""); }
+
+    // ── Coach conversation log ────────────────────────────────────────────────
+    public static void logConversation(Context ctx, String pkg, String convoJson) {
+        String existing = prefs(ctx).getString("coach_log", "[]");
+        try {
+            org.json.JSONArray arr     = new org.json.JSONArray(existing);
+            org.json.JSONObject entry  = new org.json.JSONObject();
+            entry.put("pkg",  pkg);
+            entry.put("time", System.currentTimeMillis());
+            entry.put("convo", new org.json.JSONArray(convoJson));
+            org.json.JSONArray updated = new org.json.JSONArray();
+            updated.put(entry);
+            for (int i = 0; i < Math.min(arr.length(), 49); i++) updated.put(arr.get(i));
+            prefs(ctx).edit().putString("coach_log", updated.toString()).apply();
+        } catch (Exception ignored) {}
+    }
+    public static String getConversationLog(Context ctx) {
+        return prefs(ctx).getString("coach_log", "[]");
+    }
 
     // ── Daily reset ───────────────────────────────────────────────────────────
     public static long getLastResetDay(Context ctx) {
         return prefs(ctx).getLong("last_reset_day", 0);
     }
     public static void performDailyResetIfNeeded(Context ctx) {
-        java.util.Calendar now = java.util.Calendar.getInstance();
-        int today = now.get(java.util.Calendar.DAY_OF_YEAR) * 10000
-                  + now.get(java.util.Calendar.YEAR);
+        Calendar now   = Calendar.getInstance();
+        int today = now.get(Calendar.DAY_OF_YEAR) * 10000 + now.get(Calendar.YEAR);
         long last = getLastResetDay(ctx);
-        if (last == today) return; // already reset today
-        // Reset
+        if (last == today) return;
         resetCompletedIds(ctx);
         resetTasksDoneToday(ctx);
-        // Increment streak if tasks were done yesterday, else reset
         int donePrev = prefs(ctx).getInt("tasks_done_today_prev", 0);
         if (donePrev > 0) {
             setStreak(ctx, getStreak(ctx) + 1);
         } else if (last != 0) {
-            setStreak(ctx, 0); // missed a day
+            setStreak(ctx, 0);
         }
         prefs(ctx).edit()
             .putLong("last_reset_day", today)
             .putInt("tasks_done_today_prev", 0)
             .apply();
     }
+}
