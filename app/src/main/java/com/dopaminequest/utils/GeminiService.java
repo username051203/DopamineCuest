@@ -16,7 +16,7 @@ public class GeminiService {
     private static final String TAG   = "DQ_Gemini";
     private static final String MODEL = "gemini-1.5-flash-latest";
     private static final String BASE  =
-        "https://generativelanguage.googleapis.com/v1beta/models/"\;
+        "https://generativelanguage.googleapis.com/v1beta/models/";
 
     public interface Callback<T> {
         void onResult(T result);
