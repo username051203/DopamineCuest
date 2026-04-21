@@ -26,8 +26,8 @@ import java.util.Set;
 public class AppSelectActivity extends AppCompatActivity {
 
     private AppSelectAdapter adapter;
-    private Button btnDone;
-    private TextView tvSubtitle;
+    private Button           btnDone;
+    private TextView         tvSubtitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,53 +51,79 @@ public class AppSelectActivity extends AppCompatActivity {
     private void loadApps(RecyclerView rv) {
         AsyncTask.execute(() -> {
             PackageManager pm = getPackageManager();
-            List<ApplicationInfo> installed = pm.getInstalledApplications(PackageManager.GET_META_DATA);
+            // GET_META_DATA gets all apps
+            List<ApplicationInfo> installed =
+                pm.getInstalledApplications(PackageManager.GET_META_DATA);
 
-            List<AppSelectAdapter.AppItem> items = new ArrayList<>();
-            Set<String> systemDefaults = AppState.getAllowlist(this);
+            // System apps that should be pre-checked (hardcoded allowlist)
+            Set<String> hardcoded = AppState.getAllowlist(this);
+
+            List<AppSelectAdapter.AppItem> userApps   = new ArrayList<>();
+            List<AppSelectAdapter.AppItem> systemApps = new ArrayList<>();
 
             for (ApplicationInfo info : installed) {
-                // Skip system apps that are already hardcoded — no need to show them
-                if ((info.flags & ApplicationInfo.FLAG_SYSTEM) != 0) continue;
-                // Skip our own package
                 if (info.packageName.equals(getPackageName())) continue;
 
+                // Skip purely internal system processes with no label
                 String label = pm.getApplicationLabel(info).toString();
-                boolean preChecked = systemDefaults.contains(info.packageName);
-                items.add(new AppSelectAdapter.AppItem(info.packageName, label, info, preChecked));
+                if (label.equals(info.packageName)) continue;
+
+                // Skip apps with no launch intent and not in hardcoded list
+                Intent launch = pm.getLaunchIntentForPackage(info.packageName);
+                boolean isHardcoded = hardcoded.contains(info.packageName);
+                if (launch == null && !isHardcoded) continue;
+
+                boolean isSystem = (info.flags & ApplicationInfo.FLAG_SYSTEM) != 0;
+                boolean preChecked = isHardcoded || isSystem;
+
+                AppSelectAdapter.AppItem item = new AppSelectAdapter.AppItem(
+                    info.packageName, label, info, preChecked);
+
+                if (isSystem) systemApps.add(item);
+                else          userApps.add(item);
             }
 
-            // Sort alphabetically
-            Collections.sort(items, (a, b) -> a.label.compareToIgnoreCase(b.label));
+            // Sort each group alphabetically
+            Collections.sort(userApps,   (a, b) -> a.label.compareToIgnoreCase(b.label));
+            Collections.sort(systemApps, (a, b) -> a.label.compareToIgnoreCase(b.label));
+
+            // User apps first (most relevant), then system apps
+            List<AppSelectAdapter.AppItem> all = new ArrayList<>();
+            all.addAll(userApps);
+            all.addAll(systemApps);
 
             runOnUiThread(() -> {
-                tvSubtitle.setText("Select apps you want to keep using.\nEverything else will be blocked.");
-                adapter = new AppSelectAdapter(items, count ->
-                    btnDone.setText("Allow " + count + " app" + (count == 1 ? "" : "s") + " →"));
+                tvSubtitle.setText(
+                    "Check apps you want to keep accessible.\n" +
+                    "System apps are pre-checked. Uncheck to block them.");
+                adapter = new AppSelectAdapter(all,
+                    count -> btnDone.setText(
+                        "Allow " + count + " app" + (count == 1 ? "" : "s") + " →"));
                 adapter.setHasStableIds(true);
-        rv.setAdapter(adapter);
+                rv.setAdapter(adapter);
                 btnDone.setEnabled(true);
-                btnDone.setText("Allow 0 apps →");
+
+                // Count pre-checked
+                int pre = 0;
+                for (AppSelectAdapter.AppItem i : all) if (i.selected) pre++;
+                btnDone.setText("Allow " + pre + " apps →");
             });
         });
     }
 
     private void saveAndProceed() {
         if (adapter == null) return;
-
         Set<String> selected = new HashSet<>(adapter.getSelectedPackages());
         AppState.setAllowlist(this, selected);
         AppState.setOnboarded(this, true);
         AppState.setShieldEnabled(this, true);
 
-        // Start persistence service
         Intent svc = new Intent(this, PersistenceService.class);
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             startForegroundService(svc);
         } else {
             startService(svc);
         }
-
         startActivity(new Intent(this, MainActivity.class));
         finishAffinity();
     }

@@ -1,19 +1,23 @@
 package com.dopaminequest.activities;
 
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
+import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.dopaminequest.R;
 import com.dopaminequest.utils.AppState;
+import com.dopaminequest.utils.CoachEngine;
 import com.dopaminequest.utils.GeminiService;
 
 import org.json.JSONArray;
@@ -24,154 +28,249 @@ import java.util.regex.Pattern;
 
 public class CoachChatActivity extends AppCompatActivity {
 
-    private LinearLayout layoutMessages;
+    private LinearLayout chatContainer;
     private ScrollView   scrollView;
     private EditText     etInput;
-    private View         btnSend, progressBar;
+    private Button       btnSend;
+    private TextView     tvAppName, tvStatus;
 
-    private final JSONArray history = new JSONArray();
-    private String blockedPkg;
-    private String appLabel;
-    private boolean waiting = false;
+    private String   blockedPkg;
+    private String   appLabel;
+    private JSONArray history   = new JSONArray();
+    private boolean  granted   = false;
+    private int      turnCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coach_chat);
 
+        chatContainer = findViewById(R.id.chat_container);
+        scrollView    = findViewById(R.id.scroll_view);
+        etInput       = findViewById(R.id.et_input);
+        btnSend       = findViewById(R.id.btn_send);
+        tvAppName     = findViewById(R.id.tv_app_name);
+        tvStatus      = findViewById(R.id.tv_status);
+
         blockedPkg = getIntent().getStringExtra("blocked_pkg");
-        appLabel   = resolveAppLabel(blockedPkg);
+        appLabel   = getAppLabel(blockedPkg);
+        tvAppName.setText(appLabel);
+        tvStatus.setText("Tell the coach why you need " + appLabel + ".");
 
-        layoutMessages = findViewById(R.id.layout_messages);
-        scrollView     = findViewById(R.id.scroll_messages);
-        etInput        = findViewById(R.id.et_input);
-        btnSend        = findViewById(R.id.btn_send);
-        progressBar    = findViewById(R.id.progress_bar);
-
-        findViewById(R.id.btn_back).setOnClickListener(v -> finish());
-        ((TextView) findViewById(R.id.tv_coach_title)).setText("Coach — " + appLabel);
+        addBubble("coach",
+            "You're trying to open " + appLabel + ". " +
+            "Give me a real reason and I'll consider it.");
 
         btnSend.setOnClickListener(v -> sendMessage());
-        etInput.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_SEND) { sendMessage(); return true; }
-            return false;
-        });
-
-        appendBubble("coach",
-            "Hey. You want access to " + appLabel + ".\n" +
-            "Tell me why you need it right now — be specific.");
+        findViewById(R.id.btn_back).setOnClickListener(v -> saveAndFinish());
     }
 
     private void sendMessage() {
-        if (waiting) return;
         String text = etInput.getText().toString().trim();
-        if (text.isEmpty()) return;
+        if (text.isEmpty() || granted) return;
 
         etInput.setText("");
-        hideKeyboard();
-        appendBubble("user", text);
-        setWaiting(true);
+        btnSend.setEnabled(false);
+        addBubble("user", text);
+        turnCount++;
+
+        // Try local engine first — no network call needed
+        CoachEngine.Decision local =
+            CoachEngine.evaluate(text, appLabel, turnCount);
+
+        if (!local.needsGemini) {
+            // Handle locally
+            if (local.granted) {
+                granted = true;
+                AppState.grantTempAppAccess(this, blockedPkg, local.minutes);
+                scheduleExpiry();
+                String display = local.message
+                    .replaceAll("\\[GRANT:\\d+\\]", "").trim();
+                addBubble("coach", display);
+                showGranted(local.minutes);
+                btnSend.setEnabled(true);
+            } else {
+                addBubble("coach", local.message);
+                btnSend.setEnabled(true);
+            }
+            scrollToBottom();
+            return;
+        }
+
+        // Escalate to Gemini for ambiguous cases
+        if (!AppState.hasGeminiKey(this)) {
+            // No key — be fair, grant after sustained effort
+            addBubble("coach",
+                "I'll take your word for it. You've got 10 minutes. " +
+                "Make it count. [GRANT:10]");
+            granted = true;
+            AppState.grantTempAppAccess(this, blockedPkg, 10);
+            scheduleExpiry();
+            showGranted(10);
+            btnSend.setEnabled(true);
+            scrollToBottom();
+            return;
+        }
+
+        tvStatus.setText("Thinking…");
+
+        // Record turn in history for Gemini context
+        try {
+            JSONObject userTurn = new JSONObject();
+            userTurn.put("role", "user");
+            userTurn.put("text", text);
+            history.put(userTurn);
+        } catch (Exception ignored) {}
 
         GeminiService.coachChat(this, blockedPkg, appLabel, history, text,
             new GeminiService.Callback<String>() {
                 @Override public void onResult(String reply) {
-                    try {
-                        history.put(new JSONObject().put("role", "user").put("text", text));
-                        history.put(new JSONObject().put("role", "model").put("text", reply));
-                    } catch (Exception ignored) {}
                     runOnUiThread(() -> {
-                        setWaiting(false);
-                        appendBubble("coach", reply);
-                        checkForGrant(reply);
+                        btnSend.setEnabled(true);
+                        tvStatus.setText("");
+
+                        try {
+                            JSONObject modelTurn = new JSONObject();
+                            modelTurn.put("role", "model");
+                            modelTurn.put("text", reply);
+                            history.put(modelTurn);
+                        } catch (Exception ignored) {}
+
+                        int minutes = parseGrant(reply);
+                        String display = reply.replaceAll(
+                            "\\[GRANT:\\d+\\]", "").trim();
+                        addBubble("coach", display);
+
+                        if (minutes > 0) {
+                            granted = true;
+                            AppState.grantTempAppAccess(
+                                CoachChatActivity.this, blockedPkg, minutes);
+                            scheduleExpiry();
+                            showGranted(minutes);
+                        }
+                        scrollToBottom();
                     });
                 }
                 @Override public void onError(String error) {
                     runOnUiThread(() -> {
-                        setWaiting(false);
-                        appendBubble("error", "Error: " + error);
+                        btnSend.setEnabled(true);
+                        tvStatus.setText("");
+                        // Gemini failed — fall back to generous local grant
+                        // after user has already argued their case
+                        addBubble("coach",
+                            "Network issue — I'll trust you this time. " +
+                            "15 minutes. Don't waste it.");
+                        granted = true;
+                        AppState.grantTempAppAccess(
+                            CoachChatActivity.this, blockedPkg, 15);
+                        scheduleExpiry();
+                        showGranted(15);
+                        scrollToBottom();
                     });
                 }
             });
+
+        scrollToBottom();
     }
 
-    private void checkForGrant(String reply) {
-        Matcher m = Pattern.compile("\\[GRANT:(\\d+)]").matcher(reply);
-        if (!m.find()) return;
-        int minutes = Math.min(30, Integer.parseInt(m.group(1)));
-        AppState.grantAccessWindow(this, minutes);
-        appendBubble("system", "✓ Access granted for " + minutes + " min. Go.");
-        scrollView.postDelayed(this::finish, 1800);
+    private int parseGrant(String text) {
+        Matcher m = Pattern.compile("\\[GRANT:(\\d+)\\]").matcher(text);
+        if (m.find()) {
+            try { return Math.min(30, Integer.parseInt(m.group(1))); }
+            catch (Exception ignored) {}
+        }
+        return 0;
     }
 
-    private void appendBubble(String role, String text) {
-        TextView tv = new TextView(this);
-        tv.setText(text);
-        tv.setTextSize(14f);
-        tv.setLineSpacing(0, 1.45f);
+    private void showGranted(int minutes) {
+        tvStatus.setText("✓ " + minutes + " min access granted.");
+        btnSend.setEnabled(false);
+        etInput.setEnabled(false);
+        tvStatus.postDelayed(this::saveAndFinish, 1500);
+    }
+
+    private void scheduleExpiry() {
+        android.app.AlarmManager am =
+            (android.app.AlarmManager) getSystemService(ALARM_SERVICE);
+        if (am == null) return;
+        android.content.Intent i = new android.content.Intent(this,
+            com.dopaminequest.receivers.AccessWindowReceiver.class);
+        i.setAction("com.dopaminequest.ACTION_ACCESS_EXPIRED");
+        android.app.PendingIntent pi = android.app.PendingIntent.getBroadcast(
+            this, 9002, i,
+            android.app.PendingIntent.FLAG_IMMUTABLE |
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT);
+        long at = AppState.getTempAppUntil(this);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S
+                && am.canScheduleExactAlarms()) {
+            am.setExactAndAllowWhileIdle(
+                android.app.AlarmManager.RTC_WAKEUP, at, pi);
+        } else {
+            am.setAndAllowWhileIdle(
+                android.app.AlarmManager.RTC_WAKEUP, at, pi);
+        }
+    }
+
+    private void addBubble(String role, String text) {
+        View bubble = LayoutInflater.from(this)
+            .inflate(R.layout.item_chat_bubble, chatContainer, false);
+
+        TextView tvRole = bubble.findViewById(R.id.tv_role);
+        TextView tvText = bubble.findViewById(R.id.tv_text);
+        View     bg     = bubble.findViewById(R.id.bubble_bg);
+
+        tvRole.setText(role.equals("coach") ? "COACH" : "YOU");
+        tvText.setText(text);
 
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT);
-        lp.topMargin = dpToPx(8);
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin    = 8;
+        lp.bottomMargin = 8;
+        lp.maxWidth     = (int) (getResources().getDisplayMetrics().widthPixels * 0.78f);
 
-        int maxW = (int) (getResources().getDisplayMetrics().widthPixels * 0.78f);
-        tv.setMaxWidth(maxW);
-        tv.setPadding(dpToPx(14), dpToPx(10), dpToPx(14), dpToPx(10));
-
-        switch (role) {
-            case "user":
-                tv.setBackgroundColor(ContextCompat.getColor(this, R.color.ink));
-                tv.setTextColor(ContextCompat.getColor(this, R.color.paper));
-                lp.gravity = android.view.Gravity.END;
-                lp.leftMargin = dpToPx(48);
-                break;
-            case "system":
-                tv.setBackgroundColor(ContextCompat.getColor(this, R.color.verified_green));
-                tv.setTextColor(ContextCompat.getColor(this, R.color.white));
-                lp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
-                tv.setTextSize(13f);
-                break;
-            case "error":
-                tv.setBackgroundColor(ContextCompat.getColor(this, R.color.red_wrong));
-                tv.setTextColor(ContextCompat.getColor(this, R.color.white));
-                lp.gravity = android.view.Gravity.START;
-                lp.rightMargin = dpToPx(48);
-                break;
-            default:
-                tv.setBackgroundColor(ContextCompat.getColor(this, R.color.rule));
-                tv.setTextColor(ContextCompat.getColor(this, R.color.ink));
-                lp.gravity = android.view.Gravity.START;
-                lp.rightMargin = dpToPx(48);
-                break;
+        if (role.equals("user")) {
+            lp.gravity = Gravity.END;
+            lp.leftMargin = 48;
+            bg.setBackgroundColor(
+                getResources().getColor(R.color.ink, getTheme()));
+            tvText.setTextColor(
+                getResources().getColor(R.color.paper, getTheme()));
+            tvRole.setTextColor(
+                getResources().getColor(R.color.ink3, getTheme()));
+        } else {
+            lp.gravity = Gravity.START;
+            lp.rightMargin = 48;
+            bg.setBackgroundColor(
+                getResources().getColor(R.color.rule, getTheme()));
+            tvText.setTextColor(
+                getResources().getColor(R.color.ink, getTheme()));
+            tvRole.setTextColor(
+                getResources().getColor(R.color.accent, getTheme()));
         }
-
-        tv.setLayoutParams(lp);
-        layoutMessages.addView(tv);
-        scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
+        bubble.setLayoutParams(lp);
+        chatContainer.addView(bubble);
     }
 
-    private void setWaiting(boolean on) {
-        waiting = on;
-        progressBar.setVisibility(on ? View.VISIBLE : View.GONE);
-        btnSend.setEnabled(!on);
-        etInput.setEnabled(!on);
+    private void scrollToBottom() {
+        scrollView.post(() -> scrollView.fullScroll(ScrollView.FOCUS_DOWN));
     }
 
-    private void hideKeyboard() {
-        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        if (imm != null) imm.hideSoftInputFromWindow(etInput.getWindowToken(), 0);
-    }
-
-    private String resolveAppLabel(String pkg) {
-        if (pkg == null) return "that app";
+    private void saveAndFinish() {
         try {
-            return getPackageManager()
-                .getApplicationLabel(getPackageManager().getApplicationInfo(pkg, 0))
-                .toString();
-        } catch (Exception e) { return pkg; }
+            AppState.logConversation(this, blockedPkg, history.toString());
+        } catch (Exception ignored) {}
+        finish();
     }
 
-    private int dpToPx(int dp) {
-        return Math.round(dp * getResources().getDisplayMetrics().density);
+    private String getAppLabel(String pkg) {
+        try {
+            PackageManager pm = getPackageManager();
+            ApplicationInfo info = pm.getApplicationInfo(pkg, 0);
+            return pm.getApplicationLabel(info).toString();
+        } catch (Exception e) { return pkg != null ? pkg : "that app"; }
     }
+
+    @Override
+    public void onBackPressed() { saveAndFinish(); }
 }
