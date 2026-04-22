@@ -10,8 +10,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:paddingTop="40dp">
+        android:padding="20dp"
+        android:paddingTop="36dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -20,7 +20,7 @@
             android:textColor="@color/accent"
             android:textSize="10sp"
             android:letterSpacing="0.15"
-            android:layout_marginBottom="6dp"/>
+            android:layout_marginBottom="4dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -34,7 +34,7 @@
                 android:layout_weight="1"
                 android:text="Not yet."
                 android:textColor="@color/ink"
-                android:textSize="28sp"
+                android:textSize="26sp"
                 android:textStyle="bold"
                 android:letterSpacing="-0.02"/>
 
@@ -43,28 +43,18 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/ink3"
-                android:textSize="10sp"
-                android:letterSpacing="0.1"/>
+                android:textSize="10sp"/>
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Complete a task to earn access, or reason with the coach."
-            android:textColor="@color/ink2"
-            android:textSize="13sp"
-            android:lineSpacingMultiplier="1.5"
-            android:layout_marginTop="6dp"
-            android:layout_marginBottom="12dp"/>
 
         <Button
             android:id="@+id/btn_coach_chat"
             android:layout_width="match_parent"
-            android:layout_height="44dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="10dp"
             android:backgroundTint="@color/rule"
             android:textColor="@color/accent"
             android:textAllCaps="false"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:text="Reason with Coach →"/>
 
     </LinearLayout>
@@ -74,31 +64,42 @@
         android:layout_height="1dp"
         android:background="@color/rule"/>
 
-    <!-- Allowed apps grid -->
+    <!-- Tabs -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingTop="12dp"
-        android:paddingBottom="4dp">
+        android:layout_height="44dp"
+        android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+        <Button
+            android:id="@+id/tab_apps"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:text="ALLOWED APPS"
-            android:textColor="@color/ink3"
-            android:textSize="9sp"
-            android:letterSpacing="0.15"
-            android:paddingStart="24dp"
-            android:layout_marginBottom="8dp"/>
+            android:textSize="11sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.08"
+            android:background="@color/ink"
+            android:textColor="@color/paper"
+            android:elevation="0dp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_allowed_apps"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:clipToPadding="false"/>
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="@color/rule"/>
+
+        <Button
+            android:id="@+id/tab_tasks"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="COMPLETE TASK"
+            android:textSize="11sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.08"
+            android:background="@color/rule"
+            android:textColor="@color/ink3"
+            android:elevation="0dp"/>
 
     </LinearLayout>
 
@@ -107,23 +108,58 @@
         android:layout_height="1dp"
         android:background="@color/rule"/>
 
-    <!-- Access active panel -->
+    <!-- Main panels container -->
+    <FrameLayout
+        android:id="@+id/layout_main"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- Allowed apps panel -->
+        <LinearLayout
+            android:id="@+id/panel_apps"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="visible">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_allowed_apps"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:padding="8dp"/>
+
+        </LinearLayout>
+
+        <!-- Tasks panel -->
+        <LinearLayout
+            android:id="@+id/panel_tasks"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_tasks"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="16dp"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!-- Access active overlay (shown when window earned) -->
     <LinearLayout
         android:id="@+id/layout_access_active"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="20dp"
+        android:background="@color/paper"
         android:visibility="gone">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ACCESS WINDOW"
-            android:textColor="@color/ink3"
-            android:textSize="10sp"
-            android:letterSpacing="0.12"
-            android:layout_marginBottom="8dp"/>
 
         <TextView
             android:id="@+id/tv_access_timer"
@@ -131,58 +167,19 @@
             android:layout_height="wrap_content"
             android:text="00:00"
             android:textColor="@color/accent"
-            android:textSize="48sp"
+            android:textSize="42sp"
             android:textStyle="bold"
             android:fontFamily="monospace"
-            android:letterSpacing="-0.03"
-            android:layout_marginBottom="12dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Shield restores automatically when time expires."
-            android:textColor="@color/ink3"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.5"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="8dp"/>
 
         <Button
             android:id="@+id/btn_use_apps"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="50dp"
             android:backgroundTint="@color/ink"
             android:textColor="@color/paper"
-            android:textSize="14sp"
             android:textAllCaps="false"
-            android:text="Use your apps →"/>
-
-    </LinearLayout>
-
-    <!-- Task list -->
-    <LinearLayout
-        android:id="@+id/layout_task_list"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="COMPLETE A TASK"
-            android:textColor="@color/ink3"
-            android:textSize="9sp"
-            android:letterSpacing="0.15"
-            android:paddingStart="24dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="8dp"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_tasks"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:paddingBottom="16dp"/>
+            android:text="Open apps →"/>
 
     </LinearLayout>
 

@@ -46,7 +46,7 @@ public class OnboardingActivity extends AppCompatActivity {
         "Accessibility access lets DopamineQuest detect when a blocked app opens and show your task list.",
         "Disable battery optimization so the Shield stays active even when your phone tries to save power.",
         "Device Admin prevents DopamineQuest from being uninstalled without completing 3 tasks first.",
-        "Paste your Gemini API key. It's used to generate quiz questions from your study pages.\n\nGet a free key at: aistudio.google.com\nIt never leaves your device.",
+        "Paste your Groq API key. It's used to generate quiz questions and power the coach.\n\nGet a FREE key at: console.groq.com\n14,400 requests/day free. Key never leaves your device.",
         "Select apps you want to keep using. Everything else will be blocked until you complete tasks."
     };
     private final String[] BUTTONS = {
@@ -141,7 +141,7 @@ public class OnboardingActivity extends AppCompatActivity {
                         step++; renderStep();
                     } else {
                         btnPrimary.setText(BUTTONS[4]);
-                        tvBody.setText("Key invalid or no internet. Check the key and try again.\n\nGet a free key at: aistudio.google.com");
+                        tvBody.setText("Key invalid or no internet. Check the key and try again.\n\nGet a free key at: console.groq.com");
                     }
                 });
             }

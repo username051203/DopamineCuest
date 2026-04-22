@@ -66,7 +66,7 @@
                 android:id="@+id/et_api_key"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:hint="Paste Gemini API key here"
+                android:hint="Paste Groq API key here (console.groq.com)"
                 android:textColor="@color/ink"
                 android:textColorHint="@color/ink3"
                 android:background="@null"
