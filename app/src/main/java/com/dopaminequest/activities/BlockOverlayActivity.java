@@ -77,15 +77,20 @@ public class BlockOverlayActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        checkAccessWindow();
+        // Small delay to ensure SharedPreferences commit() has flushed
+        // before we check the access window state
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
+            this::checkAccessWindow, 120);
     }
 
     private void checkAccessWindow() {
-        if (AppState.hasActiveAccessWindow(this)) {
-            showAccessActiveUI();
-        } else {
-            showTaskListUI();
+        if (AppState.hasActiveAccessWindow(this)
+                || AppState.hasTempAppAccess(this,
+                    getIntent().getStringExtra("blocked_pkg"))) {
+            // Access granted — dismiss overlay entirely so user gets to their app
+            finish();
         }
+        // else stay on overlay showing task list
     }
 
     private void showAccessActiveUI() {

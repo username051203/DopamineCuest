@@ -14,12 +14,27 @@ import com.dopaminequest.utils.AppState;
 
 public class AppBlockerAccessibilityService extends AccessibilityService {
 
-    private static final String TAG            = "DQ_Blocker";
-    private static final long   COMBO_WINDOW   = 400;
+    private static final String TAG          = "DQ_Blocker";
+    private static final long   COMBO_WINDOW = 400;
     private static AppBlockerAccessibilityService sInstance;
 
     private long lastVolUp   = 0;
     private long lastVolDown = 0;
+
+    // Prefixes that should NEVER be blocked regardless of any setting
+    private static final String[] NEVER_BLOCK = {
+        "com.android.systemui",
+        "com.android.inputmethod",
+        "com.google.android.inputmethod",
+        "com.google.android.gboard",
+        "com.touchtype.swiftkey",
+        "com.samsung.android.honeyboard",
+        "com.sec.android.inputmethod",
+        "com.miui.input",
+        "com.android.settings",
+        "com.dopaminequest",
+        "android",
+    };
 
     public static boolean isRunning() { return sInstance != null; }
 
@@ -50,21 +65,29 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
         if (pkgSeq == null) return;
         String pkg = pkgSeq.toString();
 
-        // Always allow our own app
-        if (pkg.equals(getPackageName())) return;
-        // Always allow system UI
-        if (pkg.startsWith("com.android.systemui")) return;
+        // Hard never-block list — keyboards, system UI, settings, us
+        for (String prefix : NEVER_BLOCK) {
+            if (pkg.startsWith(prefix)) return;
+        }
 
-        // Check if this specific app has a temp grant (coach-negotiated)
+        // Check active IME — never block the current keyboard
+        try {
+            String ime = android.provider.Settings.Secure.getString(
+                getContentResolver(),
+                android.provider.Settings.Secure.DEFAULT_INPUT_METHOD);
+            if (ime != null && ime.startsWith(pkg)) return;
+        } catch (Exception ignored) {}
+
+        // Temp single-app grant (coach-negotiated)
         if (AppState.hasTempAppAccess(this, pkg)) return;
 
-        // Check global access window (task-earned) — allows ALL apps
+        // Global access window (task-earned)
         if (AppState.hasActiveAccessWindow(this)) return;
 
-        // Check allowlist
+        // Allowlist check
         if (AppState.isAllowed(this, pkg)) return;
 
-        // Blocked — show overlay
+        // Blocked
         Log.d(TAG, "Blocked: " + pkg);
         launchOverlay(pkg);
     }
@@ -93,7 +116,6 @@ public class AppBlockerAccessibilityService extends AccessibilityService {
         if (lastVolUp > 0 && lastVolDown > 0
                 && Math.abs(lastVolUp - lastVolDown) < COMBO_WINDOW) {
             lastVolUp = 0; lastVolDown = 0;
-            Log.d(TAG, "Vol combo — locking");
             lockScreen();
             return true;
         }
