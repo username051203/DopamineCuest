@@ -21,7 +21,7 @@ public class GeminiService {
     private static final String TAG   = "DQ_AI";
     private static final String MODEL = "llama-3.1-8b-instant";
     private static final String URL_CHAT =
-        "https://api.groq.com/openai/v1/chat/completions"\;
+        "https://api.groq.com/openai/v1/chat/completions";
 
     public interface Callback<T> {
         void onResult(T result);
