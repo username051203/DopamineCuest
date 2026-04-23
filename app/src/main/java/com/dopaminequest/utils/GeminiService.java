@@ -197,7 +197,7 @@ public class GeminiService {
     }
 
     // ── Raw POST with Bearer auth (Groq/OpenAI format) ────────────────────────
-    private static String[] postRaw(String urlStr, String apiKey,
+    public static String[] postRawPublic(String urlStr, String apiKey,
                                     String body) throws Exception {
         URL url = new URL(urlStr);
         HttpURLConnection c = (HttpURLConnection) url.openConnection();
