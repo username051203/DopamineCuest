@@ -42,7 +42,7 @@ public class GeminiService {
                             .put("role", "user")
                             .put("content", "Say: valid")));
 
-                String[] r = postRaw(URL_CHAT, key.trim(), body.toString());
+                String[] r = postRawPublic(URL_CHAT, key.trim(), body.toString());
                 int code = Integer.parseInt(r[0]);
                 Log.d(TAG, "validateKey HTTP " + code);
 
@@ -99,7 +99,7 @@ public class GeminiService {
                             .put("role", "user")
                             .put("content", prompt)));
 
-                String[] r = postRaw(URL_CHAT, key.trim(), body.toString());
+                String[] r = postRawPublic(URL_CHAT, key.trim(), body.toString());
                 int code = Integer.parseInt(r[0]);
                 Log.d(TAG, "generateQuiz HTTP " + code);
 
@@ -175,7 +175,7 @@ public class GeminiService {
                     .put("temperature", 0.7)
                     .put("messages", messages);
 
-                String[] r = postRaw(URL_CHAT, key.trim(), body.toString());
+                String[] r = postRawPublic(URL_CHAT, key.trim(), body.toString());
                 int code = Integer.parseInt(r[0]);
                 Log.d(TAG, "coachChat HTTP " + code);
 
